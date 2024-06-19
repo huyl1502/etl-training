@@ -8,7 +8,10 @@ lazy val root = (project in file("."))
     name              := "etl-training",
     scalafmtOnCompile := true,
     libraryDependencies ++= Seq(
-      "com.typesafe"          % "config"               % "1.4.2",
-      "mysql"                 % "mysql-connector-java" % "8.0.33"
+      "com.typesafe"        % "config"               % "1.4.2",
+      "com.typesafe.slick" %% "slick"                % "3.4.1",
+      "com.typesafe.slick" %% "slick-hikaricp"       % "3.4.1",
+      "mysql"               % "mysql-connector-java" % "8.0.33",
+      "org.apache.commons"  % "commons-csv"          % "1.9.0"
     )
   )

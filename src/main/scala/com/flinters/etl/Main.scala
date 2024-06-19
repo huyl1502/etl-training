@@ -1,8 +1,70 @@
 package com.flinters.etl
 
-import java.nio.file.{ Files, Paths }
+import com.flinters.etl.model.ActionLog
+import com.flinters.etl.repository.FileSystemRepository.CsvRepository
+import com.flinters.etl.repository.MySQLRepository.ActionLogDao
+import com.flinters.etl.service.{FirstETLHandler, SecondETLHandler}
+
+import java.nio.file.{Files, Paths}
+import scala.Console.{RED, RESET}
 
 object Main {
+
+  private val fsRepository = new CsvRepository()
+
+  private val firstETLHandler  = new FirstETLHandler(fsRepository)
+  private val secondETLHandler = new SecondETLHandler(fsRepository)
+
+  def main(args: Array[String]): Unit = {
+    try {
+      prepareTestData() // Generate 2001 input files
+    } catch {
+      case ex: Exception =>
+        println(s"An unexpected error occurred: ${ex.getMessage}")
+    }
+
+    val workDir    = Paths.get("workspace/input").toFile
+    val inputFiles = workDir.listFiles().toSeq
+
+    println(s"========/ Start to handle ${inputFiles.length} inputFiles /========")
+    val startTime = System.currentTimeMillis()
+
+    // TODO: Add code here ...
+//    val f1     = Future.traverse(inputFiles)(firstETLHandler.handle)
+//    val f2     = Future.traverse(inputFiles)(secondETLHandler.handle)
+//
+//    val result = for { _ <- f1; _ <- f2 } yield ()
+//    Await.result(result, Duration.Inf)
+//
+//    // Handle the result asynchronously
+//    result.onComplete {
+//      case Success(data) => data
+//      case Failure(ex)   => ex
+//    }
+//
+//    println(Await.result(result, Duration.Inf))
+
+    val actionLogDao = new ActionLogDao()
+    inputFiles.foreach(file => {
+      try {
+        val startTimeExeOneFile = System.currentTimeMillis()
+        firstETLHandler.handle(file)
+        secondETLHandler.handle(file)
+        val endTime = System.currentTimeMillis()
+        val exeTime = endTime - startTimeExeOneFile
+        actionLogDao.insertActionLog(ActionLog(None, file.getName, "Success", exeTime.toString))
+      } catch {
+        case ex: Exception => {
+          println(s"${RED}${ex.getMessage}${RESET}")
+          actionLogDao.insertActionLog(ActionLog(None, file.getName, ex.getMessage, ""))
+        }
+      }
+    })
+
+    val endTime = System.currentTimeMillis()
+    println(s"Elapsed time: ${endTime - startTime} ms")
+    cleanWorkDir() // Clean up the workspace
+  }
 
   // No edit this function
   private def cleanWorkDir(): Unit = {
@@ -43,20 +105,5 @@ object Main {
       Files.copy(src3, dest3)
       Files.copy(src4, dest4)
     }
-  }
-
-  def main(args: Array[String]): Unit = {
-    prepareTestData() // Generate 2001 input files
-    val workDir = Paths.get("workspace/input").toFile
-    val inputFiles   = workDir.listFiles().toSeq
-
-    println(s"========/ Start to handle ${inputFiles.length} inputFiles /========")
-    val startTime = System.currentTimeMillis()
-
-    // TODO: Add code here ...
-
-    val endTime = System.currentTimeMillis()
-    println(s"Elapsed time: ${endTime - startTime} ms")
-    cleanWorkDir() // Clean up the workspace
   }
 }
