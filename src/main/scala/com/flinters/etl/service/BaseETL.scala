@@ -45,7 +45,7 @@ abstract class BaseETL(fsRepository: FSRepository) {
 
       val filteredHeaders  = data.fileHeaders
       val filteredRows     = data.fileRows
-        .filter(row => filteredColumns.forall(col => !(row.data(col).toDouble == 0)))
+        .filter(row => filteredColumns.exists(col => row.data(col).toDouble != 0))
         .map(row => row.data.values.toList)
       val filteredFileData = FileDataTransform(filteredHeaders, filteredRows)
 

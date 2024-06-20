@@ -27,10 +27,10 @@ class FirstETLHandler(fsRepository: FSRepository) extends BaseETL(fsRepository) 
   }
 
   override def load(fileInfo: FileInfo, filteredFilePath: String, filteredData: FileDataTransform, outputPath: Path, outputData: FileDataTransform): Unit = {
-    fsRepository.writeFile(filteredFilePath, filteredData.fileRows)
+    fsRepository.writeFile(filteredFilePath, filteredData.fileHeaders, filteredData.fileRows)
 
     val outputFilePath = outputPath.resolve(s"(1) ${fileInfo.platform.id} - ${fileInfo.account.accountId} .csv").toString
-    fsRepository.writeFile(outputFilePath, outputData.fileRows)
+    fsRepository.writeFile(outputFilePath, outputData.fileHeaders, outputData.fileRows)
   }
 
   override protected def canHandle(file: File): Boolean = {
