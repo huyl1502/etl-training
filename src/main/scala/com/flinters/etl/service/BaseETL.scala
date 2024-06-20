@@ -60,7 +60,7 @@ abstract class BaseETL(fsRepository: FSRepository) {
           data.account.accountName,
           row.data(mediaSetting.imp_col),
           row.data(mediaSetting.click_col),
-          (row.data(mediaSetting.cost_col).toDouble * 2).toString,
+          (row.data(mediaSetting.cost_col).toDouble * data.platform.currency_rate).toString,
           row.data(mediaSetting.cv_col)
         )
       }
