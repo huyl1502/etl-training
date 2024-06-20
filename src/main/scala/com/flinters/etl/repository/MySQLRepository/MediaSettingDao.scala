@@ -2,20 +2,13 @@ package com.flinters.etl.repository.MySQLRepository
 
 import com.flinters.etl.model.MediaSetting
 import com.flinters.etl.repository.MySQLRepository.DBConnection.db
-import slick.lifted.{ TableQuery, Tag }
 import slick.jdbc.MySQLProfile.api._
+import slick.lifted.{TableQuery, Tag}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 class MediaSettings(tag: Tag) extends Table[MediaSetting](tag, "media_settings") {
-
-  def platform_id     = column[String]("platform_id", O.PrimaryKey, O.Unique)
-  def imp_col         = column[String]("imp_col")
-  def click_col       = column[String]("click_col")
-  def cost_col        = column[String]("cost_col")
-  def cv_col          = column[String]("cv_col")
-  def report_date_col = column[String]("report_date_col")
 
   def * =
     (
@@ -26,6 +19,18 @@ class MediaSettings(tag: Tag) extends Table[MediaSetting](tag, "media_settings")
       cv_col,
       report_date_col
     ) <> ((MediaSetting.apply _).tupled, MediaSetting.unapply)
+
+  def platform_id     = column[String]("platform_id", O.PrimaryKey, O.Unique)
+
+  def imp_col         = column[String]("imp_col")
+
+  def click_col       = column[String]("click_col")
+
+  def cost_col        = column[String]("cost_col")
+
+  def cv_col          = column[String]("cv_col")
+
+  def report_date_col = column[String]("report_date_col")
 }
 
 class MediaSettingDao extends BaseDao[MediaSettings](TableQuery[MediaSettings]) {

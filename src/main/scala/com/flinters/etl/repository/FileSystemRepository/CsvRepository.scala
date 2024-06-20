@@ -25,12 +25,12 @@ class CsvRepository extends FSRepository {
     }
   }
 
-  override def writeFile(filePath: String, rows: List[List[String]]): Unit = {
+  override def writeFile(filePath: String, headers: List[String], rows: List[List[String]]): Unit = {
     // Create a FileWriter
     val fileWriter = new FileWriter(filePath)
 
     // Define the CSV format and printer
-    val csvPrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT)
+    val csvPrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT.withHeader(headers: _*))
 
     // Write records to the CSV file
     rows.foreach(row => csvPrinter.printRecord(row: _*))

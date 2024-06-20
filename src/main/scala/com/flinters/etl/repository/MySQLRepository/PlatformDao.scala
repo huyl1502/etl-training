@@ -17,9 +17,9 @@ class Platforms(tag: Tag) extends Table[Platform](tag, "platforms") {
       currency_rate
     ) <> ((Platform.apply _).tupled, Platform.unapply)
 
-  def id            = column[String]("id", O.PrimaryKey, O.Unique)
+  def id = column[String]("id", O.PrimaryKey, O.Unique)
 
-  def name          = column[String]("name")
+  def name = column[String]("name")
 
   def currency_rate = column[Double]("currency_rate")
 }
@@ -31,7 +31,7 @@ class PlatformDao extends BaseDao[Platforms](TableQuery[Platforms]) {
 
     val resultFuture = db.run(query.result)
     val rs           = Await.result(resultFuture, Duration.Inf)
-    if(rs.isEmpty) null
+    if (rs.isEmpty) null
     else rs.head
   }
 }

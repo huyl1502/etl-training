@@ -19,13 +19,13 @@ abstract class BaseETL(fsRepository: FSRepository) {
   final def handle(file: File): Future[Unit] = {
     try {
       if (canHandle(file)) {
-        val startTimeExeOneFile = System.currentTimeMillis()
+        val startTimeExeOneFile                  = System.currentTimeMillis()
         val extractedData                        = extract(file)
         val (fileInfo, filteredData, outputData) = transform(extractedData)
         load(fileInfo, FILTERED_DIR.resolve(file.getName).toString, filteredData, OUTPUT_DIR, outputData)
         println(s"Handle file: ${file.getName} successfully")
-        val endTime             = System.currentTimeMillis()
-        val exeTime             = endTime - startTimeExeOneFile
+        val endTime                              = System.currentTimeMillis()
+        val exeTime                              = endTime - startTimeExeOneFile
         actionLogDao.insertActionLog(ActionLog(None, file.getName, "Success", exeTime.toString))
       }
     } catch {
@@ -45,7 +45,7 @@ abstract class BaseETL(fsRepository: FSRepository) {
 
       val filteredHeaders  = data.fileHeaders
       val filteredRows     = data.fileRows
-        .filter(row => filteredColumns.forall(col => !(row.data(col).toDouble == 0)))
+        .filter(row => filteredColumns.exists(col => row.data(col).toDouble != 0))
         .map(row => row.data.values.toList)
       val filteredFileData = FileDataTransform(filteredHeaders, filteredRows)
 
@@ -60,7 +60,7 @@ abstract class BaseETL(fsRepository: FSRepository) {
           data.account.accountName,
           row.data(mediaSetting.imp_col),
           row.data(mediaSetting.click_col),
-          (row.data(mediaSetting.cost_col).toDouble * 2).toString,
+          (row.data(mediaSetting.cost_col).toDouble * data.platform.currency_rate).toString,
           row.data(mediaSetting.cv_col)
         )
       }
