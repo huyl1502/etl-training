@@ -1,12 +1,13 @@
 package com.flinters.etl
 
-import com.flinters.etl.model.ActionLog
 import com.flinters.etl.repository.FileSystemRepository.CsvRepository
-import com.flinters.etl.repository.MySQLRepository.ActionLogDao
 import com.flinters.etl.service.{FirstETLHandler, SecondETLHandler}
 
 import java.nio.file.{Files, Paths}
-import scala.Console.{RED, RESET}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
+import scala.util.{Failure, Success}
 
 object Main {
 
@@ -16,9 +17,9 @@ object Main {
   private val secondETLHandler = new SecondETLHandler(fsRepository)
 
   def main(args: Array[String]): Unit = {
-    try {
+    try
       prepareTestData() // Generate 2001 input files
-    } catch {
+    catch {
       case ex: Exception =>
         println(s"An unexpected error occurred: ${ex.getMessage}")
     }
@@ -30,36 +31,36 @@ object Main {
     val startTime = System.currentTimeMillis()
 
     // TODO: Add code here ...
-//    val f1     = Future.traverse(inputFiles)(firstETLHandler.handle)
-//    val f2     = Future.traverse(inputFiles)(secondETLHandler.handle)
-//
-//    val result = for { _ <- f1; _ <- f2 } yield ()
-//    Await.result(result, Duration.Inf)
-//
-//    // Handle the result asynchronously
-//    result.onComplete {
-//      case Success(data) => data
-//      case Failure(ex)   => ex
-//    }
-//
-//    println(Await.result(result, Duration.Inf))
+    val f1 = Future.traverse(inputFiles)(firstETLHandler.handle)
+    val f2 = Future.traverse(inputFiles)(secondETLHandler.handle)
 
-    val actionLogDao = new ActionLogDao()
-    inputFiles.foreach(file => {
-      try {
-        val startTimeExeOneFile = System.currentTimeMillis()
-        firstETLHandler.handle(file)
-        secondETLHandler.handle(file)
-        val endTime = System.currentTimeMillis()
-        val exeTime = endTime - startTimeExeOneFile
-        actionLogDao.insertActionLog(ActionLog(None, file.getName, "Success", exeTime.toString))
-      } catch {
-        case ex: Exception => {
-          println(s"${RED}${ex.getMessage}${RESET}")
-          actionLogDao.insertActionLog(ActionLog(None, file.getName, ex.getMessage, ""))
-        }
-      }
-    })
+    val result = for { _ <- f1; _ <- f2 } yield ()
+    Await.result(result, Duration.Inf)
+
+    // Handle the result asynchronously
+    result.onComplete {
+      case Success(data) => data
+      case Failure(ex)   => ex
+    }
+
+    println(Await.result(result, Duration.Inf))
+
+//    val actionLogDao = new ActionLogDao()
+//    inputFiles.foreach(file => {
+//      try {
+//        val startTimeExeOneFile = System.currentTimeMillis()
+//        firstETLHandler.handle(file)
+//        secondETLHandler.handle(file)
+//        val endTime = System.currentTimeMillis()
+//        val exeTime = endTime - startTimeExeOneFile
+//        actionLogDao.insertActionLog(ActionLog(None, file.getName, "Success", exeTime.toString))
+//      } catch {
+//        case ex: Exception => {
+//          println(s"${RED}${ex.getMessage}${RESET}")
+//          actionLogDao.insertActionLog(ActionLog(None, file.getName, ex.getMessage, ""))
+//        }
+//      }
+//    })
 
     val endTime = System.currentTimeMillis()
     println(s"Elapsed time: ${endTime - startTime} ms")
