@@ -2,3 +2,5 @@
 /target/
 .bsp
 .idea
+/workspace/
+/target/scala-2.13/
