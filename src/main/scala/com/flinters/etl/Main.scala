@@ -17,7 +17,12 @@ object Main {
   private val secondETLHandler = new SecondETLHandler(fsRepository)
 
   def main(args: Array[String]): Unit = {
-    prepareTestData() // Generate 2001 input files
+    try
+      prepareTestData() // Generate 2001 input files
+    catch {
+      case ex: Exception =>
+        println(s"An unexpected error occurred: ${ex.getMessage}")
+    }
 
     val workDir    = Paths.get("workspace/input").toFile
     val inputFiles = workDir.listFiles().toSeq
@@ -26,19 +31,45 @@ object Main {
     val startTime = System.currentTimeMillis()
 
     // TODO: Add code here ...
-    val f1 = Future.traverse(inputFiles)(firstETLHandler.handle)
-    val f2 = Future.traverse(inputFiles)(secondETLHandler.handle)
+    val numCores      = Runtime.getRuntime.availableProcessors()
+    val numberOfParts = numCores
+    println(numberOfParts)
 
-    val result = for { _ <- f1; _ <- f2 } yield ()
-    Await.result(result, Duration.Inf)
+    val parts = inputFiles.grouped((inputFiles.length + numberOfParts - 1) / numberOfParts).toList
 
-    // Handle the result asynchronously
-    result.onComplete {
-      case Success(data) => data
-      case Failure(ex)   => ex
+    val futures = parts.map { part =>
+      Future.traverse(part)(firstETLHandler.handle)
+      Future.traverse(part)(secondETLHandler.handle)
     }
 
-    println(Await.result(result, Duration.Inf))
+    val combinedFuture = Future.sequence(futures)
+
+    val result = Await.result(combinedFuture, Duration.Inf)
+
+    println(s"Result: $result")
+
+    // Handle the results
+    combinedFuture.onComplete {
+      case Success(results) =>
+        println(s"All parts processed")
+
+      case Failure(exception) =>
+        println(s"An error occurred: ${exception.getMessage}")
+    }
+
+//    val f1 = Future.traverse(inputFiles)(firstETLHandler.handle)
+//    val f2 = Future.traverse(inputFiles)(secondETLHandler.handle)
+//
+//    val result = for { _ <- f1; _ <- f2 } yield ()
+//    Await.result(result, Duration.Inf)
+//
+//    // Handle the result asynchronously
+//    result.onComplete {
+//      case Success(data) => data
+//      case Failure(ex)   => ex
+//    }
+//
+//    println(Await.result(result, Duration.Inf))
 
 //    val actionLogDao = new ActionLogDao()
 //    inputFiles.foreach(file => {
