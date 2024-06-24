@@ -37,7 +37,7 @@ class SecondETLHandler(fsRepository: FSRepository) extends BaseETL(fsRepository)
   ): Unit = {
     fsRepository.writeFile(filteredFilePath, filteredData.fileHeaders, filteredData.fileRows)
 
-    val outputFilePath = outputPath.resolve(s"(2) ${fileInfo.platform.id} - ${fileInfo.account.accountId} .csv").toString
+    val outputFilePath = outputPath.resolve(s"(2) ${fileInfo.platform.id} - ${fileInfo.account.accountId}.csv").toString
     fsRepository.writeFile(outputFilePath, outputData.fileHeaders, outputData.fileRows)
   }
 
