@@ -17,12 +17,7 @@ object Main {
   private val secondETLHandler = new SecondETLHandler(fsRepository)
 
   def main(args: Array[String]): Unit = {
-    try
-      prepareTestData() // Generate 2001 input files
-    catch {
-      case ex: Exception =>
-        println(s"An unexpected error occurred: ${ex.getMessage}")
-    }
+    prepareTestData() // Generate 2001 input files
 
     val workDir    = Paths.get("workspace/input").toFile
     val inputFiles = workDir.listFiles().toSeq
